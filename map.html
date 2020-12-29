@@ -2,69 +2,70 @@
 <head>
     <style>
     	table {
-		padding: 0px;
-	    border-collapse: collapse;
-	}
+			padding: 0px;
+		    border-collapse: collapse;
+		}
 
-	td { vertical-align: top; }
+		td { vertical-align: top; }
 
-	#map {
-		transform: rotate(15deg);
-	    margin-left: 200px;
-	    margin-top: 200px;
-	}
+		#map {
+			/*transform: rotate(15deg);*/
+		    margin-left: 200px;
+		    margin-top: 200px;
+		}
 
-	.bigBlock {
-		border: 8px solid #fafa7a;
-		background-color:white;
-	}
+		.bigBlock {
+			border: 8px solid #fafa7a;
+			background-color:white;
+		}
 
-	td.mediumBlock {
-		border: 6px solid #f8f8f8;
-		/*background-color: #ece5db;*/
-	}
-	td.mediumBlock:hover {
-		border: 6px solid black;
-	}
+		td.mediumBlock {
+			border: 6px solid #f8f8f8;
+			/*background-color: #ece5db;*/
+		}
+		td.mediumBlock:hover {
+			border: 6px solid black;
+		}
 
-	td.mediumBlock table {
-		width:100%;
-		height:100%;
-	}
+		td.mediumBlock table {
+			width:100%;
+			height:100%;
+		}
 
-	.smallBlock {
-		box-shadow: inset
-			0 0 0 1px #92918f,
-			0 0 0 4px #f8f8f8
-		;
-	    background-color: #ece5db;
-	}
-	td.smallBlock:hover {
-		background-color:#7b7772;
-	}
+		.smallBlock {
+			box-shadow: inset
+				0 0 0 1px #92918f,
+				0 0 0 4px #f8f8f8
+			;
+		    background-color: #ece5db;
+		}
+		td.smallBlock:hover {
+			background-color:#7b7772;
+		}
 
-	.building {
-		border: 2px solid #828282;
-		background-color: #d2c8bb;
-		/*float:left;*/
-	}
-	.building:hover {
-		background-color: #ffdf76;
-	}
+		.building {
+			box-shadow: inset
+				0 0 0 2px #828282;
+			background-color: #d2c8bb;
+			/*float:left;*/
+		}
+		.building:hover {
+			background-color: #ffdf76;
+		}
 
-	.park {
-		background-color:#93d893;
-	}
+		.park {
+			background-color:#93d893;
+		}
     </style>
     <script>
     	//Params
 
 		var blockParams = {
 			"big" : {
-				"sizeRange" : {w: [1000, 650], h: [1000,650]},
+				"sizeRange" : {w: [1000, 800], h: [1000,800]},
 			},
 			"medium" : {
-				"sizeRange" : {w: [260, 60],h: [140, 200]},
+				"sizeRange" : {w: [60, 220],h: [140, 200]},
 			},
 			"small" : {
 				"sizeRange" : {w: [35,55], h: [35,55]},
@@ -84,8 +85,8 @@
 		// 	"small" : [1,1]
 		// }
 
-		var numBuildingsPerBlock = [5, 15]
-		var buildingSizeRange = [10, 35]
+		var numBuildingsPerBlock = [10, 20]
+		var buildingSizeRange = [12, 35]
 
 		//test values
 		// var numBuildingsPerBlock = [20,20]
@@ -112,11 +113,12 @@
 		function createBigBlock(parent) {
 			var block = document.createElement("TABLE");
 
-			var rnd = getRandomInt(blockParams.big.sizeRange.w[0],blockParams.big.sizeRange.w[1]);
+			var rndWidth = getRandomInt(blockParams.big.sizeRange.w[0],blockParams.big.sizeRange.w[1]);
+			var rndHeight = getRandomInt(blockParams.big.sizeRange.h[0],blockParams.big.sizeRange.h[1]);
 
 			var styles = {
-				"width": `${rnd}px`,
-				"height": `${rnd}px`
+				"width": `${rndWidth}px`,
+				"height": `${rndHeight}px`
 			}
 
 			block.id = makeId("bigBlock");
@@ -131,9 +133,16 @@
 		//assumes parent is a table, sub-divides it
 		function createMediumBlocks(parent) {
 
-			//var block = document.createElement("TABLE");
 			var container = document.querySelector(parent);
-			
+
+			// blockParams
+			// "medium" : {
+			// 	"sizeRange" : {w: [260, 60],h: [140, 200]},
+			// },
+
+			futzedWidths = subdivide(container.offsetWidth, subdivisions.big[1], blockParams.medium.sizeRange.w[1], blockParams.medium.sizeRange.w[0]);
+			futzedHeights = subdivide(container.offsetHeight, subdivisions.big[0], blockParams.medium.sizeRange.h[1], blockParams.medium.sizeRange.h[0]);
+
 			for (var x=0; x < subdivisions.big[1]; x++) {
 				var row = document.createElement("TR");		//create row
 				container.appendChild(row);
@@ -142,11 +151,19 @@
 					cell.id = makeId("mediumBlock");
 					cell.className = "mediumBlock";
 					row.appendChild(cell);
-					blocks.medium.push(cell);	
+					blocks.medium.push(cell);
+
+					if (y==x) {		//if we're gonna futz with the sizes...
+						var styles = {
+							"width": `${futzedWidths[x]}px`,
+							"height": `${futzedHeights[x]}px`
+						}
+						setStyle("#" + cell.id, styles);
+					}
 				}
 			}
 
-			setCellDimensions(container);
+			setCellDimensions(container);			//make implicit cell sizes explicitly styled
 
 		}
 
@@ -155,7 +172,10 @@
 
 			var container = document.createElement("TABLE");
 
-			var subdiv = getRandomInt(subdivisions.medium[0],subdivisions.medium[1])
+			var subdiv = getRandomInt(subdivisions.medium[0],subdivisions.medium[1]);
+
+			futzedWidths = subdivide(container.offsetWidth, subdivisions.medium[1], blockParams.small.sizeRange.w[1], blockParams.small.sizeRange.w[0]);
+			futzedHeights = subdivide(container.offsetHeight, subdivisions.medium[0], blockParams.small.sizeRange.h[1], blockParams.small.sizeRange.h[0]);
 			
 			for (var x=0; x < subdiv; x++) {
 				var row = document.createElement("TR");		//create row
@@ -261,6 +281,41 @@
 		    min = Math.ceil(min);
 		    max = Math.floor(max);
 		    return Math.floor(Math.random() * (max - min + 1)) + min;
+		}
+
+		//returns an integer array of numSegments length that add up to totalLength, but are randomly offset, within boundaries of max and minSegmentLength
+		function subdivide(totalLength, numSegments, maxSegmentLength, minSegmentLength) {
+
+			var segmentLengths = [];
+
+			for (var x=0; x < numSegments; x++) {		//start with even divisions
+				segmentLengths.push(Math.floor(totalLength / numSegments));
+			}
+			console.log("SegmentLengths: ",segmentLengths);
+
+			for (var x=0; x < numSegments; x+=2) {
+				if (x == numSegments-1) { break; }						//don't do if you don't have neighbor
+				var maxPos = maxSegmentLength - segmentLengths[x];					//how far away are you from max?
+				var maxNeg = 0 - (segmentLengths[x] - minSegmentLength);			//how far away are you from min?
+				var changeNum = getRandomInt(maxNeg,maxPos);	//choose a random amount from that offset range
+
+				if (changeNum > 0) {			//if positive (ie stealing from neighbor)
+					var neighborMinAmount = segmentLengths[x+1] - minSegmentLength; 	//neighborMinAmount = how far away is next one from min
+					//if your change amount is more than that, make it the neighborMinAmount
+					if (changeNum > neighborMinAmount) { changeNum = neighborMinAmount; }
+				}
+				else {							//if negative (ie giving to your neighbor)
+					var neighborMaxAmount = maxSegmentLength - segmentLengths[x+1];		//neighborMaxAmount = how far away is next one from max
+					//if your change amount is more than that, make it the neighborMaxAmount
+					if (Math.abs(changeNum) > neighborMaxAmount) { changeNum = neighborMaxAmount; }
+				}
+
+				segmentLengths[x] += changeNum		//"add" it to you
+				segmentLengths[x+1] -= changeNum	//"take" it from your neighbor
+			}
+			console.log("adjusted: ",segmentLengths);
+
+			return segmentLengths;
 		}
 
 		//sets the style of selector element to properties object
